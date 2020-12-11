@@ -1,5 +1,5 @@
 
-        "IMAGE RECOGNITION and CLASSIFICATION MODEL"
+  IMAGE RECOGNITION and CLASSIFICATION MODEL
         
 # Importing the basic libraries
 
