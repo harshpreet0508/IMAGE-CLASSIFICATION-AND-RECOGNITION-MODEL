@@ -1,13 +1,14 @@
 
   IMAGE RECOGNITION and CLASSIFICATION MODEL
         
-# Importing the basic libraries
+# Importing the libraries
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+%matplotlib qt
 
-# Get the Data
+# Get the dataset
 
 from sklearn.datasets import fetch_openml
 dataset = fetch_openml('mnist_784')
@@ -16,55 +17,108 @@ dataset = fetch_openml('mnist_784')
 
 # It has 70,000 images of handwritten images of 28*28 and encoding HSV.
 # its means it is 3d with which ML cannot deal. So, we need to flatten.
-# So, the dimension is now 784*70000
+# So, the dimension is now 70000 * 784
 # X = HSV intensities of all pixels and y = 5 
 
 X = dataset.data
 y = dataset.target
-y = y.astype(np.int32)
+
+y = y.astype('int32')
+
+# Discovery & Visualization
+
+some_digit = X[0]
+some_digit_image = some_digit.reshape(28, 28)
 
 # Since the data is flattened. In order for us to visualize it
 # we must again reshape it back to 28 * 28 pixel format.
 
-some_digit = X[69696]
-some_digit_image = some_digit.reshape(28,28)
 plt.imshow(some_digit_image)
 plt.show()
 
-# sklearn library has fit() predict() score() function
-# which makes it very easy to test and apply algo 
+plt.imshow(some_digit_image, "binary")
+plt.axis('off')
+plt.show()
 
-from sklearn.tree import DecisionTreeClassifier
-dtf = DecisionTreeClassifier(max_depth = 3)
-dtf.fit(X,y)
-print(dtf.score(X,y))       # 44.23 %
+# Loop to visualize mutiple images simultaneously
 
-# its time to get some predictions
+for i in range(25):
+    plt.subplot(5, 5, i+1)
+    plt.xticks([])
+    plt.yticks([])
+    im = X[i]
+    im = im.reshape(28, 28)
+    plt.imshow(im, "binary")
+    plt.xlabel("label : {}".format(y[i]))
+plt.show()
 
-y_pred= dtf.predict(X)
+# Data preprocessing
 
-# y = vector of observations
-# y_pred = vector of predictions
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+# Select and train a ML algorithm
+
+################# Logistic Regression #################
+
+from sklearn.linear_model import LogisticRegression
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+
+log_reg.score(X_train, y_train)
+log_reg.score(X_test, y_test)
+
+y_pred_log = log_reg.predict(X_test)
+
+for i in range(25):
+    plt.subplot(5, 5, i+1)
+    plt.xticks([])
+    plt.yticks([])
+    im = X_test[i]
+    im = im.reshape(28, 28)
+    plt.imshow(im, "binary")
+    plt.xlabel("Actual label : {}\nPredicted label : {}".format(y_test[i], y_pred_log[i]))
+plt.tight_layout()
+plt.show()
 
 from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y, y_pred)  
+cm_log = confusion_matrix(y_test, y_pred_log)
 
-# 11111 : 3    3936 : 6    7654 : 2    42042 : 4    7777 : 8
+from sklearn.metrics import precision_score, recall_score, f1_score
+precision_score(y_test, y_pred_log, average = "micro")
+recall_score(y_test, y_pred_log, average = "micro")
+f1_score(y_test, y_pred_log, average = "micro")
 
-y_pred_test = dtf.predict(X[[11111, 3936, 7654, 42042, 7777], 0:784])
-print(y_pred_test)              # 3 8 6 1 1
 
-# it could only predict 1 of 5 right as the accuracy is quite low.
-
-# Now, fine tuning.
+####################### Decision Tree ####################
 
 from sklearn.tree import DecisionTreeClassifier
-dtf = DecisionTreeClassifier(max_depth = 13)
-dtf.fit(X,y)
-print(dtf.score(X,y))       # 96.34 %
+dtf = DecisionTreeClassifier()
+dtf.fit(X_train, y_train)
+
+dtf.score(X_train, y_train)
+dtf.score(X_test, y_test)
+
+y_pred_dtf = dtf.predict(X_test)
+
+for i in range(25):
+    plt.subplot(5, 5, i+1)
+    plt.xticks([])
+    plt.yticks([])
+    im = X_test[i]
+    im = im.reshape(28, 28)
+    plt.imshow(im, "binary")
+    plt.xlabel("Actual label : {}\nPredicted label : {}".format(y_test[i], y_pred_dtf[i]))
+plt.tight_layout()
+plt.show()
+
+from sklearn.metrics import confusion_matrix
+cm_dtf = confusion_matrix(y_test, y_pred_dtf)
+
+from sklearn.metrics import precision_score, recall_score, f1_score
+precision_score(y_test, y_pred_dtf, average = "micro")
+recall_score(y_test, y_pred_dtf, average = "micro")
+f1_score(y_test, y_pred_dtf, average = "micro")
 
 
-# So, 5 basic steps are complete. 
-# We did not follow any optimization techniques 
-# which we need to follow while working on an actual project.
 
